@@ -6,6 +6,7 @@
 // @author       taropun
 // @match        http://exhentai.org/
 // @match        http://exhentai.org/?*
+// @match        http://exhentai.org/tag/*
 // @grant        none
 // @require      http://code.jquery.com/jquery-latest.js
 // ==/UserScript==
