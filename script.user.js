@@ -13,8 +13,15 @@
 /* jshint -W097 */
 'use strict';
 
+function containsAny(haystack, needles) {
+    return needles.some(function(needle) {
+        return haystack.indexOf(needle) !== -1;
+    });
+}
+
 function highlightLargeGalleries() {
     var hl = 'rgba(27, 43, 162, 0.5)';
+    var ignoredTags = ['anthology'];
     var rows = $('.gtr0, .gtr1');
 
     if (rows.length > 0) {
@@ -43,7 +50,8 @@ function highlightLargeGalleries() {
                 galleryMetadata = data['gmetadata'];
                 galleryMetadata.forEach(function(metadatum, i){
                     var fileCount = parseInt(metadatum['filecount'], 10);
-                    if (fileCount > 100) {
+                    var tags = metadatum['tags'];
+                    if (fileCount > 100 && !containsAny(tags, ignoredTags)) {
                         var row = rows.eq(i);
                         $(row).css('background-color', hl);
                     }
