@@ -19,13 +19,19 @@ function containsAny(haystack, needles) {
     });
 }
 
+function contains(haystack, needle) {
+    return haystack.some(function(item) {
+        return item === needle;
+    });
+}
+
 function highlightLargeGalleries() {
-    var hl = 'rgba(27, 43, 162, 0.5)';
+    var green = 'rgba(27, 162, 43, 0.5)';
+    var red = 'rgba(162, 27, 43, 0.5)';
     var ignoredTags = ['anthology'];
     var rows = $('.gtr0, .gtr1');
 
     if (rows.length > 0) {
-        console.log('Gallery search results found');
         var galleries = [];
         rows.map(function(_, row){
             var galleryLink = $('.it5>a', row).attr('href');
@@ -47,19 +53,21 @@ function highlightLargeGalleries() {
             dataType: 'json',
             data: payload,
             success: function(data) {
-                galleryMetadata = data['gmetadata'];
+                var galleryMetadata = data['gmetadata'];
                 galleryMetadata.forEach(function(metadatum, i){
                     var fileCount = parseInt(metadatum['filecount'], 10);
                     var tags = metadatum['tags'];
+                    var row = rows.eq(i);
                     if (fileCount > 100 && !containsAny(tags, ignoredTags)) {
-                        var row = rows.eq(i);
-                        $(row).css('background-color', hl);
+                        if (contains(tags, 'language:english')) {
+                            $(row).css('background-color', green);
+                        } else {
+                            $(row).css('background-color', red);
+                        }
                     }
                 });
             }
         });
-    } else {
-        console.log('No gallery search results found');
     }
 }
 
