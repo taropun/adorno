@@ -4,9 +4,9 @@
 // @version      0.1
 // @description  Highlight large galleries in search views
 // @author       taropun
-// @match        http://exhentai.org/
-// @match        http://exhentai.org/?*
-// @match        http://exhentai.org/tag/*
+// @match        https://exhentai.org/
+// @match        https://exhentai.org/?*
+// @match        https://exhentai.org/tag/*
 // @grant        none
 // @require      http://code.jquery.com/jquery-latest.js
 // ==/UserScript==
@@ -25,6 +25,15 @@ function contains(haystack, needle) {
     });
 }
 
+function partition(items, batchSize) {
+    var size = Math.ceil(items.length / batchSize);
+    var result = new Array(size);
+    for (var i = 0; i < size; ++i) {
+        result[i] = items.slice(i * batchSize, (i + 1) * batchSize);
+    }
+    return result;
+}
+
 function highlightLargeGalleries() {
     var green = 'rgba(27, 162, 43, 0.5)';
     var red = 'rgba(162, 27, 43, 0.5)';
@@ -41,33 +50,39 @@ function highlightLargeGalleries() {
             galleries.push([galleryID, galleryToken]);
         });
 
-        var apiRoot = 'http://g.e-hentai.org/api.php';
-        var payload = JSON.stringify({
-            'method': 'gdata',
-            'gidlist': galleries,
-            'namespace': 1});
-        $.ajax({
-            url: apiRoot,
-            method: 'POST',
-            contentType: 'application/json',
-            dataType: 'json',
-            data: payload,
-            success: function(data) {
-                var galleryMetadata = data['gmetadata'];
-                galleryMetadata.forEach(function(metadatum, i){
-                    var fileCount = parseInt(metadatum['filecount'], 10);
-                    var tags = metadatum['tags'];
-                    var row = rows.eq(i);
-                    if (fileCount > 100 && !containsAny(tags, ignoredTags)) {
-                        if (contains(tags, 'language:english')) {
-                            $(row).css('background-color', green);
-                        } else {
-                            $(row).css('background-color', red);
+        var apiRoot = 'https://exhentai.org/api.php';
+        var batchSize = 25;
+        var galleryBatches = partition(galleries, batchSize);
+
+        for (var i = 0; i < galleryBatches.length; ++i) {
+            // TODO: implement rate limiting for 200-item pages
+            var payload = JSON.stringify({
+                'method': 'gdata',
+                'gidlist': galleryBatches[i],
+                'namespace': 1});
+            $.ajax({
+                url: apiRoot,
+                method: 'POST',
+                contentType: 'application/json',
+                dataType: 'json',
+                data: payload,
+                success: function(data) {
+                    var galleryMetadata = data.gmetadata;
+                    galleryMetadata.forEach(function(metadatum, i){
+                        var fileCount = parseInt(metadatum.filecount, 10);
+                        var tags = metadatum.tags;
+                        var row = rows.eq(i);
+                        if (fileCount > 100 && !containsAny(tags, ignoredTags)) {
+                            if (contains(tags, 'language:english')) {
+                                $(row).css('background-color', green);
+                            } else {
+                                $(row).css('background-color', red);
+                            }
                         }
-                    }
-                });
-            }
-        });
+                    });
+                }
+            });
+        }
     }
 }
 
