@@ -54,7 +54,7 @@ function highlightLargeGalleries() {
         var batchSize = 25;
         var galleryBatches = partition(galleries, batchSize);
 
-        for (var i = 0; i < galleryBatches.length; ++i) {
+        galleryBatches.forEach(function(batch, i) {
             // TODO: implement rate limiting for 200-item pages
             var payload = JSON.stringify({
                 'method': 'gdata',
@@ -68,10 +68,10 @@ function highlightLargeGalleries() {
                 data: payload,
                 success: function(data) {
                     var galleryMetadata = data.gmetadata;
-                    galleryMetadata.forEach(function(metadatum, i){
+                    galleryMetadata.forEach(function(metadatum, j){
                         var fileCount = parseInt(metadatum.filecount, 10);
                         var tags = metadatum.tags;
-                        var row = rows.eq(i);
+                        var row = rows.eq(i * batchSize + j);
                         if (fileCount > 100 && !containsAny(tags, ignoredTags)) {
                             if (contains(tags, 'language:english')) {
                                 $(row).css('background-color', green);
@@ -82,7 +82,7 @@ function highlightLargeGalleries() {
                     });
                 }
             });
-        }
+        });
     }
 }
 
