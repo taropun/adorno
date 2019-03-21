@@ -38,12 +38,13 @@ function highlightLargeGalleries() {
     var green = 'rgba(27, 162, 43, 0.5)';
     var red = 'rgba(162, 27, 43, 0.5)';
     var ignoredTags = ['anthology'];
-    var rows = $('.gtr0, .gtr1');
+    var rows = $('table.glt tr:has(td)');
 
     if (rows.length > 0) {
         var galleries = [];
         rows.map(function(_, row){
-            var galleryLink = $('.it5>a', row).attr('href');
+            console.log(row);
+            var galleryLink = $('.glname a', row).attr('href');
             var galleryFragments = galleryLink.split('/');
             var galleryID = galleryFragments[4];
             var galleryToken = galleryFragments[5];
